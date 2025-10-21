@@ -43,6 +43,44 @@ flowchart LR
     classDef note fill:#f9fbff,stroke:none,color:#3a6cb0,font-style:italic;
 ```
 
+#  Multi-Region Architecture 
+
+```mermaid
+flowchart TB
+    %% === Global router ===
+    subgraph Global["🌍 Global Coordinator / Router"]
+        G[Job Router / API Gateway]
+    end
+
+    %% === Region A: Ray Data (GPU) ===
+    subgraph RegionA["🗺️ Region A -Ray Data LLM (GPU Workers)"]
+        style RegionA fill:#e6f7e9,stroke:#27ae60,stroke-width:1px,rx:10,ry:10
+        HA[Ray Head Node A]
+        WA1[Worker Nodes A1..An 🖥️ GPU]
+        SA[Ray Serve Deployment A]
+        HA --> WA1
+        WA1 --> SA
+    end
+
+    %% === Region B: Ray Data LLM (CPU) ===
+    subgraph RegionB["🗺️ Region B -Ray Data (CPU Workers)"]
+        style RegionB fill:#e8f2ff,stroke:#3a6cb0,stroke-width:1px,rx:10,ry:10
+        HB[Ray Head Node B]
+        WB1[Worker Nodes B1..Bn 💻 CPU]
+        SB[Ray Serve Deployment B]
+        HB --> WB1
+        WB1 --> SB
+    end
+
+    %% === Global connections ===
+    G -->|"Route jobs based on latency / load / region"| HA
+    G --> HB
+
+    %% === External client ===
+    C[Client / API Request] --> G
+
+```
+
 # Evaluate RAG using Batch Inference with Ray Data LLM on only CPU Workers
 
 ## Solve GPU Availbiltiy problems
